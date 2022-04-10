@@ -1,13 +1,14 @@
 {
   "domain": "dht",
   "name": "DHT Sensor",
+  "version": "1.0.0",
   "documentation": "https://www.home-assistant.io/integrations/dht",
   "requirements": [
     "adafruit-circuitpython-dht==3.7.0",
     "RPi.GPIO==0.7.1a4"
   ],
   "codeowners": [
-    "@thegardenmonkey"
+    "@Ligio"
   ],
   "iot_class": "local_polling"
 }
