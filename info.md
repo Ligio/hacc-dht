@@ -1,0 +1,1 @@
+DHT custom component
