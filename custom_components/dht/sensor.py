@@ -200,3 +200,4 @@ class DHTClient:
                 self.data[SENSOR_HUMIDITY] = humidity
         finally:
             dht.exit()
+
