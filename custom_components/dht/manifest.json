@@ -4,8 +4,7 @@
   "documentation": "https://www.home-assistant.io/integrations/dht",
   "requirements": [
     "adafruit-circuitpython-dht==3.7.2",
-    "RPi.GPIO==0.7.1",
-    "https://github.com/Ligio/sysv_ipc_python3/raw/main/dist/sysv_ipc-1.1.0-cp39-cp39-linux_armv7l.whl"
+    "RPi.GPIO==0.7.1"
   ],
   "codeowners": [
     "@Ligio"
