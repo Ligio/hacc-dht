@@ -4,8 +4,7 @@ from __future__ import annotations
 from datetime import timedelta
 import logging
 
-import adafruit_dht
-import board
+import Adafruit_DHT
 import voluptuous as vol
 
 from homeassistant.components.sensor import (
@@ -64,8 +63,7 @@ SENSOR_KEYS: list[str] = [desc.key for desc in SENSOR_TYPES]
 def validate_pin_input(value):
     """Validate that the GPIO PIN is prefixed with a D."""
     try:
-        int(value)
-        return f"D{value}"
+        return int(value)
     except ValueError:
         return value.upper()
 
@@ -73,7 +71,7 @@ def validate_pin_input(value):
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
         vol.Required(CONF_SENSOR): cv.string,
-        vol.Required(CONF_PIN): vol.All(cv.string, validate_pin_input),
+        vol.Required(CONF_PIN): vol.All(vol.Coerce(int), validate_pin_input),
         vol.Optional(CONF_MONITORED_CONDITIONS, default=[]): vol.All(
             cv.ensure_list, [vol.In(SENSOR_KEYS)]
         ),
@@ -89,10 +87,10 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 
 
 def setup_platform(
-    hass: HomeAssistant,
-    config: ConfigType,
-    add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
+        hass: HomeAssistant,
+        config: ConfigType,
+        add_entities: AddEntitiesCallback,
+        discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the DHT sensor."""
     _LOGGER.warning(
@@ -103,9 +101,9 @@ def setup_platform(
     )
 
     available_sensors = {
-        "AM2302": adafruit_dht.DHT22,
-        "DHT11": adafruit_dht.DHT11,
-        "DHT22": adafruit_dht.DHT22,
+        "AM2302": Adafruit_DHT.AM2302,
+        "DHT11": Adafruit_DHT.DHT11,
+        "DHT22": Adafruit_DHT.DHT22,
     }
     sensor = available_sensors.get(config[CONF_SENSOR])
     pin = config[CONF_PIN]
@@ -133,12 +131,12 @@ class DHTSensor(SensorEntity):
     """Implementation of the DHT sensor."""
 
     def __init__(
-        self,
-        dht_client,
-        name,
-        temperature_offset,
-        humidity_offset,
-        description: SensorEntityDescription,
+            self,
+            dht_client,
+            name,
+            temperature_offset,
+            humidity_offset,
+            description: SensorEntityDescription,
     ):
         """Initialize the sensor."""
         self.entity_description = description
@@ -178,17 +176,15 @@ class DHTClient:
     def __init__(self, sensor, pin, name):
         """Initialize the sensor."""
         self.sensor = sensor
-        self.pin = getattr(board, pin)
+        self.pin = pin
         self.data = {}
         self.name = name
 
     @Throttle(MIN_TIME_BETWEEN_UPDATES)
     def update(self):
         """Get the latest data the DHT sensor."""
-        dht = self.sensor(self.pin)
         try:
-            temperature = dht.temperature
-            humidity = dht.humidity
+            humidity, temperature = Adafruit_DHT.read_retry(self.sensor, self.pin)
         except RuntimeError:
             _LOGGER.debug("Unexpected value from DHT sensor: %s", self.name)
         except Exception:  # pylint: disable=broad-except
@@ -198,6 +194,3 @@ class DHTClient:
                 self.data[SENSOR_TEMPERATURE] = temperature
             if humidity:
                 self.data[SENSOR_HUMIDITY] = humidity
-        finally:
-            dht.exit()
-
